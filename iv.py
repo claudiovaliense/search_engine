@@ -7,10 +7,7 @@ def html_to_text():
     h = html2text.HTML2Text()
     h.ignore_links = True; h.ignore_images = True
     for _, _, files in os.walk('dataset/html'):
-        cont=0
         for file in files:
-            if cont==1000: break
-            cont+=1
             vet = []
             try:
                 for line in open(f'dataset/html/{file}'):
@@ -26,10 +23,8 @@ def inverted_index():
     """Create inverted index"""
     iv = dict()
     for _, _, files in os.walk('dataset/html_to_text'):
-        cont=0
         for file in files:
             vet = []
-            if cont==1000: break; cont+=1
             try:
                 for line in open(f'dataset/html_to_text/{file}'):
                     vet.append(line.strip())
@@ -60,6 +55,6 @@ def statistics_iv(iv):
     print(f"Avg positions terms: {avg_position / terms_unicos}")
     
 
-#html_to_text()
-#inverted_index()
-statistics_iv( json.load( open("dataset/inverted_index.json") ) )
+html_to_text()
+inverted_index()
+#statistics_iv( json.load( open("dataset/inverted_index.json") ) )
