@@ -17,6 +17,12 @@ g++ -o exercicio1 example_spider.cpp -L../chilkat/lib -lchilkat-9esolv -lpthread
 
 # TP 3, create inverted index -------------
 
+# Structure inverted index
+{ 'term' : [ [id_doc : [position_term, position2_term, ...]] , [id_doc2 : [position_term, position2,term, ...] ], ...  ], 
+   'term2' : [....],
+    ...
+}
+
 # Download module pre-requisite
 python3.6 -m pip install html2text json
 
