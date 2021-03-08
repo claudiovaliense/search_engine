@@ -48,7 +48,7 @@ unzip html-br-collection.zip
 #https://github.com/google/gumbo-parser
 
 # Compilar solução proposta neste tp. obs: tem que ser sinal de acento
-g++ -o tp4 tp4.cc `pkg-config –cflags –libs gumbo`
+g++ -o tp4 tp4.cc \`pkg-config –cflags –libs gumbo\`
 
 # Executar solução
 ./tp4
