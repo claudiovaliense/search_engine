@@ -47,8 +47,17 @@ unzip html-br-collection.zip
 # Baixar e instalar parser com o objetivo de remover as tags htmls e deixar apenas o texto
 #https://github.com/google/gumbo-parser
 
+# Letras minúscula, substituior acentos e colocar entre espaço caracteres especiais
+sh script_pre_process.sh
+
 # Compilar solução proposta neste tp. obs: tem que ser sinal de acento
 g++ -o tp4 tp4.cc \`pkg-config –cflags –libs gumbo\`
 
 # Executar solução
 ./tp4
+
+# TP 5 --------------------
+
+# Compilar tp5 e executar consultas
+sh script_tp5.sh
+
