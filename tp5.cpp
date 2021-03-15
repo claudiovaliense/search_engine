@@ -13,6 +13,21 @@ using json = nlohmann::json; // json in c++
 #include <chrono> // time
 using namespace std::chrono; // calculate the time
 
+map<string,double> page_rank(){
+    map<string, double> pagerank;
+    ifstream input("pagerank.jsonl");
+    int i =0;
+    for( std::string line; getline( input, line ); ){
+        //if (i == 10) break;
+        //i++;
+        auto line_json = json::parse(line);
+        string url = line_json.value("url", "oops");
+        double value = line_json.value("pagerank", 0.0) ;
+        pagerank[url] = value;
+    }
+    return pagerank;
+}
+
 static std::string cleantext(GumboNode* node) {
     /*Remove tags html.*/
     if (node->type == GUMBO_NODE_TEXT) {
@@ -176,6 +191,8 @@ vector< pair<string, double> > top_k(map<string, double> mymap, int k){
 }
 
 void model_vector(string q){
+    map<string, double> page;
+    page = page_rank(); 
     vector<string> terms_q = split(q, " ");
     ifstream input("map_word.txt"); int count_words=0;
     map<string,string> vocab;
@@ -183,7 +200,15 @@ void model_vector(string q){
     for(string line; getline( input, line ); ){ // identificador do termo
         vector<string> id_term  = split2(line, ",");
         vocab[id_term[1]] = id_term[0];
+    }
+
+    ifstream input_url("map_id.txt"); // map the url
+    map<string,string> map_id_url;
+    for(string line; getline( input_url, line ); ){ // identificador do termo
+        vector<string> id_url  = split2(line, ",");
+        map_id_url[id_url[0]] = id_url[1];
     } 
+
     map<string, double> term_tfidf_docs; // doc and tfidf
     for (auto term : terms_q){ // identifica os documentos que os termos ocorre
         map<string, int> doc_freq; // identificador do documento e a frequencia do termo
@@ -193,6 +218,7 @@ void model_vector(string q){
         string last_doc = ""; // store id last doc
         
         for(string line; getline( input, line ); ){ // todos os documentos que o termo aparece
+            //cout << "url----" << line << endl;
             vector<string> idterm_iddoc_pos  = split(line, ",");
             if (idterm_iddoc_pos[1] != last_doc){ // other document
                 last_doc = idterm_iddoc_pos[1];
@@ -203,9 +229,14 @@ void model_vector(string q){
                 freq_doc++;
             }
         }
-        double idf_term = log10( (double) total_docs / cont_docs);
+        double idf_term = log2( (double) total_docs / cont_docs);
         for (auto doc_freq_local : doc_freq){ // calcula o tfidf dos documentos que aparecem o termo
-            double tf_idf = 1 + log10(doc_freq_local.second) * idf_term;
+            //cout <<  << endl;
+            //cout << page[doc_freq_local.first] < endl;
+            double tf_idf = (1 + log2(doc_freq_local.second) ) * idf_term; 
+            tf_idf =  idf_term * tf_idf; // tem no livro, estranho essa parte
+
+            //cout << "tfidf " << tf_idf << endl;
             if (term_tfidf_docs.count( doc_freq_local.first )){ // sum score de diferentes termos
                 term_tfidf_docs[doc_freq_local.first] = term_tfidf_docs[doc_freq_local.first] + tf_idf;
             }else{
@@ -213,12 +244,15 @@ void model_vector(string q){
             }
         }
     }
-    ifstream input_url("map_id.txt"); // map the url
-    map<string,string> map_id_url;
-    for(string line; getline( input_url, line ); ){ // identificador do termo
-        vector<string> id_url  = split2(line, ",");
-        map_id_url[id_url[0]] = id_url[1];
-    } 
+
+    for (auto doc_tfidf : term_tfidf_docs){
+        // cout << doc_tfidf.second << endl;
+        //term_tfidf_docs[doc_tfidf.first] =  doc_tfidf.second / 5;
+        //cout << doc_tfidf.second << endl;
+        //cout << "tfidf" <<  term_tfidf_docs[doc_tfidf.first] << endl;
+        term_tfidf_docs[doc_tfidf.first] = (doc_tfidf.second/5) + ( 10000 *  page[ map_id_url[ doc_tfidf.first ] ] ); // normaliza e adiciona pagerank
+    }
+
     vector< pair< string, double>> top_five = top_k(term_tfidf_docs, 5);
     for (auto x : top_five) 
         cout << map_id_url[ x.first ] << endl; // << ", " << x.second << endl;
